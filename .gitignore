@@ -1,0 +1,7 @@
+daemon/target/
+**/*.rs.bk
+
+# Editor/ad-hoc backups.
+*.bak
+*.orig
+*.rej

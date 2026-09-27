@@ -1,0 +1,8 @@
+# Logged-in user can access HyperX Pulsefire 2 hidraw (vendor 03f0, product 0f98).
+#
+# Must be applied before systemd's 73-seat-late.rules, which is what actually
+# runs the "uaccess" builtin (RUN{builtin}+="uaccess" gated on TAG=="uaccess").
+# A rule file numbered 99 sets the tag too late in the same pass for that
+# builtin to see it, so the ACL never gets applied — hence this file's 72-
+# prefix rather than 99-.
+SUBSYSTEM=="hidraw", ATTRS{idVendor}=="03f0", ATTRS{idProduct}=="0f98", TAG+="uaccess"

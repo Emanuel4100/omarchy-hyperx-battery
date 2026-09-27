@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Print HyperX mouse battery stats from the daemon JSON (requires the daemon/service running).
+# Usage: hyperx-show-battery-state [path-to-state.json]
+
+set -euo pipefail
+
+STATE_PATH="${1:-${XDG_RUNTIME_DIR:-}/hyperx-mouse-battery.json}"
+
+if [[ ! -f "$STATE_PATH" ]]; then
+    echo "No state file: $STATE_PATH" >&2
+    echo "(Start the user service: systemctl --user start hyperx-mouse-battery.service)" >&2
+    exit 1
+fi
+
+exec python3 - "$STATE_PATH" <<'PY'
+import json, sys
+from datetime import datetime, timezone
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as f:
+    d = json.load(f)
+
+def ts(v):
+    if v is None:
+        return "—"
+    try:
+        return datetime.fromtimestamp(int(v), tz=timezone.utc).astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    except (TypeError, ValueError, OSError):
+        return str(v)
+
+pct = d.get("percent")
+chg = d.get("charging")
+print(f"State file: {path}")
+print(f"  percent:    {pct if pct is not None else '—'}")
+print(f"  charging:  {chg if chg is not None else '—'}")
+print(f"  stale:     {d.get('stale', False)}")
+print(f"  ok:       {d.get('ok', False)}")
+print(f"  updated:   {ts(d.get('updated'))}")
+print(f"  last OK:   {ts(d.get('last_read_ok_at'))}")
+mgr = d.get("manager_error")
+if mgr:
+    print(f"  manager_error: {mgr}")
+PY

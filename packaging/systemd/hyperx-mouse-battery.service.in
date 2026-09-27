@@ -1,0 +1,14 @@
+[Unit]
+Description=HyperX mouse battery state (hidraw) for the desktop bar
+After=graphical-session-pre.target
+
+[Service]
+Type=simple
+ExecStart=@BIN@
+Restart=on-failure
+RestartSec=5
+Environment=HYPERX_POLL_SECS=15
+Environment=HYPERX_POLL_ROUNDS=2
+
+[Install]
+WantedBy=graphical-session.target
